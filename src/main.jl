@@ -39,7 +39,12 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs..
         return tour, cost
 
     elseif algorithm == "HGS"
-        ap = Hygese.AlgorithmParameters(;kwargs...) 
+        if haskey(kwargs, :nbIter)
+            ap = Hygese.AlgorithmParameters(;kwargs...) 
+        else
+            nb = round(Int, 400 * n / 100)
+            ap = Hygese.AlgorithmParameters(;nbIter=nb, kwargs...) 
+        end
         result = Hygese.solve_tsp(dist_mtx, ap, verbose=false)
         tour = vcat(1, result.routes[1])
         shift_tour!(tour, firstcity)

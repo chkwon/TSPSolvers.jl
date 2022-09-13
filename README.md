@@ -54,4 +54,7 @@ You may also pass the solver-specific keyword arguments. For example:
 tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="LKH", INITIAL_TOUR_ALGORITHM="GREEDY", RUNS=5, TIME_LIMIT=10.0)
 tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="FarthestInsertion", do2opt=false)
 tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="SimulatedAnnealing", firstcity=3, steps=10, num_starts=3)
+tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="HGS", nbIter=100)
 ```
+
+By default, `nbIter` is set to `4 * n` for HGS.
