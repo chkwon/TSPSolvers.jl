@@ -1,19 +1,35 @@
 import Concorde
 import LKH
+import Hygese
 import TravelingSalesmanHeuristics
 import TSPLIB
+using LinearAlgebra
 using Random
+
+
+function evaluate_tour(tour::Vector{Int}, dist_mtx::Matrix{Int})
+    tour_len = 0
+    for i in 1:length(tour)
+        if i < length(tour)
+            tour_len += dist_mtx[tour[i], tour[i+1]]
+        else
+            tour_len += dist_mtx[tour[end], tour[1]]
+        end
+    end
+    return tour_len
+end
 
 function dist_mat(x::Vector{T}, y::Vector{T}) where T <: Real
     @assert length(x) == length(y)
     n = length(x)
-    M = Matrix{T}(undef, n, n)
+    M = Matrix{Float64}(undef, n, n)
     @inbounds for i in 1:n, j in 1:n
         M[i, j] = sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2)
     end
 
     return M
 end
+
 
 function rand_int_dist_mtx(n::Int; digits=3)
     x = rand(n) .* 10 ^ digits
@@ -41,6 +57,7 @@ end
 supported_algorithms = [
     "Concorde", 
     "LKH", 
+    "HGS", 
     "NearestNeighbor", 
     "FarthestInsertion", 
     "CheapestInsertion",
@@ -49,45 +66,69 @@ supported_algorithms = [
 ]
 
 
+function post_process!(tour, cost, dist_mtx)
+    # n = size(dist_mtx, 1)
+
+    # if length(tour) > n 
+    #     if tour[2] != n + 1
+    #         tour[2:end] = tour[end:-1:2]
+    #     end
+
+    #     tour = tour[1:2:end]
+    #     cost = evaluate_tour(tour, dist_mtx)
+    # end
+
+    return tour, cost
+end
+
+
 function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs...) 
     n = size(dist_mtx, 1)
 
+    S = dist_mtx
+
     if algorithm == "Concorde"
-        tour, cost = Concorde.solve_tsp(dist_mtx; kwargs...)
+        tour, cost = Concorde.solve_tsp(S; kwargs...)
         shift_tour!(tour, firstcity)
         return tour, cost
 
     elseif algorithm == "LKH"
+        # LKH can handle ATSP, so it doesn't require atsp2tsp
         tour, cost = LKH.solve_tsp(dist_mtx; kwargs...)
         shift_tour!(tour, firstcity)
         return tour, cost
 
+    elseif algorithm == "HGS"
+        ap = Hygese.AlgorithmParameters(kwargs...) 
+        result = Hygese.solve_tsp(dist_mtx, ap, verbose=false)
+        return result.routes[1], result.cost 
+
     elseif algorithm == "NearestNeighbor"
-        _tour, cost = TravelingSalesmanHeuristics.nearest_neighbor(dist_mtx; firstcity=firstcity, kwargs...)
+        _tour, cost = TravelingSalesmanHeuristics.nearest_neighbor(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]
         return tour, cost
 
     elseif algorithm == "FarthestInsertion"
-        _tour, cost = TravelingSalesmanHeuristics.farthest_insertion(dist_mtx; firstcity=firstcity, kwargs...)
+        _tour, cost = TravelingSalesmanHeuristics.farthest_insertion(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]
         return tour, cost
-
+        
     elseif algorithm == "CheapestInsertion"
-        _tour, cost = TravelingSalesmanHeuristics.cheapest_insertion(dist_mtx; firstcity=firstcity, kwargs...)
+        _tour, cost = TravelingSalesmanHeuristics.cheapest_insertion(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]      
-        return tour, cost  
-
+        return tour, cost
+        
     elseif algorithm == "TwoOpt"
-        init_tour = rand_tour_for_heuristics(n; firstcity=firstcity)
-        _tour, cost = TravelingSalesmanHeuristics.two_opt(dist_mtx, init_tour; kwargs...)
+        init_tour = rand_tour_for_heuristics(size(S, 1); firstcity=firstcity)
+        _tour, cost = TravelingSalesmanHeuristics.two_opt(S, init_tour; kwargs...)
         tour = _tour[1:end-1]
         return tour, cost
-
+        
     elseif algorithm == "SimulatedAnnealing"
         _tour, cost = TravelingSalesmanHeuristics.farthest_insertion(dist_mtx; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]
         return tour, cost
-
+        
     else
         error("Algorithm \"$(algorithm)\" is not supported. Choose from $supported_algorithms.")
     end
