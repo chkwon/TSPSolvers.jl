@@ -7,54 +7,10 @@ using LinearAlgebra
 using Random
 
 
-function evaluate_tour(tour::Vector{Int}, dist_mtx::Matrix{Int})
-    tour_len = 0
-    for i in 1:length(tour)
-        if i < length(tour)
-            tour_len += dist_mtx[tour[i], tour[i+1]]
-        else
-            tour_len += dist_mtx[tour[end], tour[1]]
-        end
-    end
-    return tour_len
-end
+include("utils.jl")
+include("performances.jl")
 
-function dist_mat(x::Vector{T}, y::Vector{T}) where T <: Real
-    @assert length(x) == length(y)
-    n = length(x)
-    M = Matrix{Float64}(undef, n, n)
-    @inbounds for i in 1:n, j in 1:n
-        M[i, j] = sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2)
-    end
-
-    return M
-end
-
-
-function rand_int_dist_mtx(n::Int; digits=3)
-    x = rand(n) .* 10 ^ digits
-    y = rand(n) .* 10 ^ digits
-    dist = round.(Int, dist_mat(x, y))
-    return dist
-end
-
-function shift_tour!(tour::Vector{Int}, firstcity)
-    if tour[1] != firstcity 
-        idx = findfirst(x -> x==firstcity, tour)
-        circshift!(tour, idx - 1)
-    end
-end
-
-function rand_tour_for_heuristics(n::Int; firstcity=1)
-    tour = shuffle(1:n)
-    shift_tour!(tour, firstcity)
-    push!(tour, firstcity) # TravelingSalesmanHeuristics requires the first node at the end of the tour again.
-    return tour
-end
-
-
-
-supported_algorithms = [
+const supported_algorithms = [
     "Concorde", 
     "LKH", 
     "HGS", 
@@ -64,22 +20,6 @@ supported_algorithms = [
     "TwoOpt", 
     "SimulatedAnnealing"
 ]
-
-
-function post_process!(tour, cost, dist_mtx)
-    # n = size(dist_mtx, 1)
-
-    # if length(tour) > n 
-    #     if tour[2] != n + 1
-    #         tour[2:end] = tour[end:-1:2]
-    #     end
-
-    #     tour = tour[1:2:end]
-    #     cost = evaluate_tour(tour, dist_mtx)
-    # end
-
-    return tour, cost
-end
 
 
 function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs...) 
@@ -99,9 +39,11 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs..
         return tour, cost
 
     elseif algorithm == "HGS"
-        ap = Hygese.AlgorithmParameters(kwargs...) 
+        ap = Hygese.AlgorithmParameters(;kwargs...) 
         result = Hygese.solve_tsp(dist_mtx, ap, verbose=false)
-        return result.routes[1], result.cost 
+        tour = vcat(1, result.routes[1])
+        shift_tour!(tour, firstcity)
+        return tour, result.cost 
 
     elseif algorithm == "NearestNeighbor"
         _tour, cost = TravelingSalesmanHeuristics.nearest_neighbor(S; firstcity=firstcity, kwargs...)
@@ -125,8 +67,9 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs..
         return tour, cost
         
     elseif algorithm == "SimulatedAnnealing"
-        _tour, cost = TravelingSalesmanHeuristics.farthest_insertion(dist_mtx; firstcity=firstcity, kwargs...)
+        _tour, cost = TravelingSalesmanHeuristics.simulated_annealing(dist_mtx; kwargs...)
         tour = _tour[1:end-1]
+        shift_tour!(tour, firstcity)
         return tour, cost
         
     else
