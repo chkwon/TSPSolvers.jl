@@ -34,7 +34,7 @@ end
 function shift_tour!(tour::Vector{Int}, firstcity)
     if tour[1] != firstcity 
         idx = findfirst(x -> x==firstcity, tour)
-        circshift!(tour, idx - 1)
+        circshift!(tour, length(tour) - idx + 1)
     end
 end
 
@@ -42,6 +42,7 @@ function rand_tour_for_heuristics(n::Int; firstcity=1)
     tour = shuffle(1:n)
     shift_tour!(tour, firstcity)
     push!(tour, firstcity) # TravelingSalesmanHeuristics requires the first node at the end of the tour again.
+
     return tour
 end
 
