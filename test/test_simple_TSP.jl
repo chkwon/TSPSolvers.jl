@@ -40,5 +40,23 @@ using LinearAlgebra
         tour, cost = solve_tsp(M; algorithm=algo, init_tour=init_tour, firstcity = 3)
         @test cost == 29              
     end
+    
+
+    @testset "Some argument combinations" begin
+        
+        tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="LKH", INITIAL_TOUR_ALGORITHM="GREEDY", RUNS=5, TIME_LIMIT=10.0)
+        @test tour_len == 29    
+
+        tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="FarthestInsertion", do2opt=false)
+        @test tour_len == 29    
+
+        tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="SimulatedAnnealing", firstcity=3, steps=10, num_starts=3)
+        @test tour_len == 29    
+
+        tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="HGS", nbIter=100)
+        @test tour_len == 29    
+
+
+    end
 
 end
