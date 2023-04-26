@@ -22,7 +22,7 @@ const supported_algorithms = [
 ]
 
 
-function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs...) 
+function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tour::Vector{Int}=Int[], kwargs...) 
     n = size(dist_mtx, 1)
 
     S = dist_mtx
@@ -66,7 +66,22 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, kwargs..
         return tour, cost
         
     elseif algorithm == "TwoOpt"
-        init_tour = rand_tour_for_heuristics(size(S, 1); firstcity=firstcity)
+        if isempty(init_tour)
+            init_tour = rand_tour_for_heuristics(size(S, 1); firstcity=firstcity)
+        end
+        
+        if length(init_tour) == n 
+            init_tour = shift_tour!(init_tour, firstcity)
+            push!(init_tour, firstcity)
+        end
+
+        @assert length(init_tour) == n + 1
+        @assert init_tour[1] == init_tour[end]
+
+        if init_tour[1] != firstcity 
+            @warn("The first city of the initial tour is not $firstcity. It will be ignored.")
+        end
+
         _tour, cost = TravelingSalesmanHeuristics.two_opt(S, init_tour; kwargs...)
         tour = _tour[1:end-1]
         return tour, cost
