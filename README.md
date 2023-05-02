@@ -1,12 +1,12 @@
 # TSPSolvers
 
+A common interface to a few solvers for the Traveling Salesman Problem: [Concorde.jl](https://github.com/chkwon/Concorde.jl), [LKH.jl](https://github.com/chkwon/LKH.jl), [TravelingSalesmanHeuristics.jl](https://github.com/evanfields/TravelingSalesmanHeuristics.jl), and [Hygese.jl](https://github.com/chkwon/Hygese.jl).
 
+To install:
 ```julia
-] add https://github.com/chkwon/TSPSolvers.jl
+] add TSPSolvers
 ```
 
-
-A common interface to [Concorde.jl](https://github.com/chkwon/Concorde.jl), [LKH.jl](https://github.com/chkwon/LKH.jl), [TravelingSalesmanHeuristics.jl](https://github.com/evanfields/TravelingSalesmanHeuristics.jl), and [Hygese.jl](https://github.com/chkwon/Hygese.jl).
 
 
 # Example
