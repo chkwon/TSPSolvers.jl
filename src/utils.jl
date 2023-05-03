@@ -1,13 +1,9 @@
 
 
 function evaluate_tour(tour::Vector{Int}, dist_mtx::Matrix{Int})
-    tour_len = 0
+    tour_len = zero(Int)
     for i in 1:length(tour)
-        if i < length(tour)
-            tour_len += dist_mtx[tour[i], tour[i+1]]
-        else
-            tour_len += dist_mtx[tour[end], tour[1]]
-        end
+        tour_len += dist_mtx[tour[i], tour[i % length(tour) + 1]]
     end
     return tour_len
 end
@@ -31,7 +27,7 @@ function rand_int_dist_mtx(n::Int; digits=3)
     return dist
 end
 
-function shift_tour!(tour::Vector{Int}, firstcity)
+function shift_tour!(tour::Vector{Int}, firstcity::Int)
     if tour[1] != firstcity 
         idx = findfirst(x -> x==firstcity, tour)
         circshift!(tour, length(tour) - idx + 1)

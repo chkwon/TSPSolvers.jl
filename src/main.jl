@@ -30,13 +30,13 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tou
     if algorithm == "Concorde"
         tour, cost = Concorde.solve_tsp(S; kwargs...)
         shift_tour!(tour, firstcity)
-        return tour, cost
+        return tour, round(Int, cost)
 
     elseif algorithm == "LKH"
         # LKH can handle ATSP, so it doesn't require atsp2tsp
         tour, cost = LKH.solve_tsp(dist_mtx; kwargs...)
         shift_tour!(tour, firstcity)
-        return tour, cost
+        return tour, round(Int, cost)
 
     elseif algorithm == "HGS"
         if haskey(kwargs, :nbIter)
@@ -48,22 +48,22 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tou
         result = Hygese.solve_tsp(dist_mtx, ap, verbose=false)
         tour = vcat(1, result.routes[1])
         shift_tour!(tour, firstcity)
-        return tour, result.cost 
+        return tour, round(Int, result.cost)
 
     elseif algorithm == "NearestNeighbor"
         _tour, cost = TravelingSalesmanHeuristics.nearest_neighbor(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]
-        return tour, cost
+        return tour, round(Int, cost)
 
     elseif algorithm == "FarthestInsertion"
         _tour, cost = TravelingSalesmanHeuristics.farthest_insertion(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]
-        return tour, cost
+        return tour, round(Int, cost)
         
     elseif algorithm == "CheapestInsertion"
         _tour, cost = TravelingSalesmanHeuristics.cheapest_insertion(S; firstcity=firstcity, kwargs...)
         tour = _tour[1:end-1]      
-        return tour, cost
+        return tour, round(Int, cost)
         
     elseif algorithm == "TwoOpt"
         if isempty(init_tour)
@@ -84,13 +84,13 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tou
 
         _tour, cost = TravelingSalesmanHeuristics.two_opt(S, init_tour; kwargs...)
         tour = _tour[1:end-1]
-        return tour, cost
+        return tour, round(Int, cost)
         
     elseif algorithm == "SimulatedAnnealing"
         _tour, cost = TravelingSalesmanHeuristics.simulated_annealing(dist_mtx; kwargs...)
         tour = _tour[1:end-1]
         shift_tour!(tour, firstcity)
-        return tour, cost
+        return tour, round(Int, cost)
         
     else
         error("Algorithm \"$(algorithm)\" is not supported. Choose from $supported_algorithms.")
