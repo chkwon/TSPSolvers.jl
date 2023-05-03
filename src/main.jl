@@ -18,7 +18,7 @@ const supported_algorithms = [
     "FarthestInsertion", 
     "CheapestInsertion",
     "TwoOpt", 
-    "SimulatedAnnealing"
+    # "SimulatedAnnealing"
 ]
 
 
@@ -86,11 +86,11 @@ function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tou
         tour = _tour[1:end-1]
         return tour, round(Int, cost)
         
-    elseif algorithm == "SimulatedAnnealing"
-        _tour, cost = TravelingSalesmanHeuristics.simulated_annealing(dist_mtx; kwargs...)
-        tour = _tour[1:end-1]
-        shift_tour!(tour, firstcity)
-        return tour, round(Int, cost)
+    # elseif algorithm == "SimulatedAnnealing"
+    #     _tour, cost = TravelingSalesmanHeuristics.simulated_annealing(dist_mtx; kwargs...)
+    #     tour = _tour[1:end-1]
+    #     shift_tour!(tour, firstcity)
+    #     return tour, round(Int, cost)
         
     else
         error("Algorithm \"$(algorithm)\" is not supported. Choose from $supported_algorithms.")
