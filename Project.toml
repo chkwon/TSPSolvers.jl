@@ -1,7 +1,7 @@
 name = "TSPSolvers"
 uuid = "c9b9de95-37f0-4dea-82f9-4245f29ba0b6"
 authors = ["Changhyun Kwon <chkwon@gmail.com> and contributors"]
-version = "0.1.0"
+version = "0.2.0"
 
 [deps]
 Concorde = "df6a336b-a67f-4155-81fc-4f05fe893652"
@@ -20,7 +20,7 @@ Hygese = "0.1"
 LKH = "0.1"
 TSPLIB = "0.1"
 TravelingSalesmanHeuristics = "0.3"
-julia = "1"
+julia = "1.8"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
