@@ -5,4 +5,5 @@ using Test
     # Write your tests here.
     include("test_shift_tour.jl")
     include("test_simple_TSP.jl")
+    include("test_lowerbound.jl")
 end
