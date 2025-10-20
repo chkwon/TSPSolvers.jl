@@ -1,7 +1,7 @@
 name = "TSPSolvers"
 uuid = "c9b9de95-37f0-4dea-82f9-4245f29ba0b6"
 authors = ["Changhyun Kwon <chkwon@gmail.com> and contributors"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 Concorde = "df6a336b-a67f-4155-81fc-4f05fe893652"
