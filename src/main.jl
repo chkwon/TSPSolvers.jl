@@ -9,6 +9,7 @@ using Random
 
 include("utils.jl")
 include("performances.jl")
+include("heldkarp.jl")
 
 const supported_algorithms = [
     "Concorde", 

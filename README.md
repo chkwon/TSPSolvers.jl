@@ -58,3 +58,13 @@ tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="HGS", nbIter=100)
 ```
 
 By default, `nbIter` is set to `4 * n` for HGS.
+
+## Held-Karp Lower Bound
+
+TSPSolvers also exposes the Held-Karp dynamic-programming relaxation, which gives a provable lower bound on the optimal tour length:
+```julia
+lb = TSPSolvers.lowerbound(M)
+tour, tour_len = TSPSolvers.solve_tsp(M; algorithm="Concorde")
+@assert lb <= tour_len
+```
+The routine expects a square matrix of `Int` distances (use `round.(Int, ...)` to convert if necessary) and always returns an `Int`. It assumes the tour starts and ends at the first city.

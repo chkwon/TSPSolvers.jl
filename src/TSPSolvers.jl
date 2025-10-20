@@ -6,7 +6,7 @@ module TSPSolvers
 
 include("main.jl")
 
-export solve_tsp 
+export solve_tsp, lowerbound
 
 
 end
