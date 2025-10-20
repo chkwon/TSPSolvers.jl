@@ -121,7 +121,7 @@ end
 
 """
     heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
-                   depot::Int=1, max_iter::Int=100, ub::Int=typemax(Int))
+                   depot::Int=1, max_iter::Int=1000, ub::Int=typemax(Int))
 
 Compute the Held-Karp lower bound using subgradient optimization.
 
@@ -132,17 +132,30 @@ in the TSP. The relaxation is solved using subgradient optimization with 1-tree 
 - `D::Matrix{Int}`: Distance matrix
 - `S::Vector{Int}`: Subset of nodes to visit (excluding depot)
 - `depot::Int=1`: Depot node (default: 1)
-- `max_iter::Int=100`: Maximum number of subgradient iterations
+- `max_iter::Int=1000`: Maximum number of subgradient iterations
 - `ub::Int=typemax(Int)`: Upper bound for Polyak step size
 
 # Returns
 - `bestLB::Float64`: Best lower bound found
 """
 function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
-                        depot::Int=1, max_iter::Int=100, ub::Int=typemax(Int))::Float64
+                        depot::Int=1, max_iter::Int=1000, ub::Int=typemax(Int))::Float64
 
     n = size(D, 1)
+
+    # Initialize multipliers using Concorde's heuristic: pi[i] = min_edge_cost / 2
     pi = zeros(Float64, n)
+    @inbounds for i in 1:n
+        min_cost = typemax(Int)
+        for j in 1:n
+            if i != j && D[i,j] < min_cost
+                min_cost = D[i,j]
+            end
+        end
+        pi[i] = Float64(min_cost) / 2.0
+    end
+    pi[depot] = 0.0  # Depot multiplier always stays at 0
+
     deg = zeros(Int, n)  # Pre-allocate degree vector
 
     bestLB = 0.0
@@ -151,6 +164,7 @@ function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
 
     # Pre-compute mean for diminishing step size if needed
     use_ub = (ub < typemax(Int))
+    goal = use_ub ? Float64(ub - 1) : -Inf  # Target bound (like Concorde)
     c0 = use_ub ? 0.0 : Float64(mean(D))
 
     # Pre-allocate subgradient vector
@@ -170,6 +184,10 @@ function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
 
         if currLB > bestLB
             bestLB = currLB
+            # Early termination if we exceed the goal (like Concorde)
+            if use_ub && currLB > goal
+                break
+            end
         end
 
         # Compute subgradient: g[i] = deg[i] - 2, and gnorm2
@@ -181,7 +199,7 @@ function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
         g[depot] = Float64(deg[depot] - 2)
         gnorm2 += g[depot] * g[depot]
 
-        # Check convergence
+        # Check convergence: all degrees are 2 (found a tour)
         if gnorm2 < 1e-12
             break
         end
@@ -189,7 +207,12 @@ function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
         # Compute step size
         α = if use_ub
             # Polyak step with upper bound
-            max(θ * (Float64(ub) - currLB) / gnorm2, 0.0)
+            step = θ * (Float64(ub) - currLB) / gnorm2
+            # Early termination if step size too small (like Concorde: t < 2)
+            if step < 2.0
+                break
+            end
+            max(step, 0.0)
         else
             # Diminishing step size
             c0 / Float64(t)
@@ -206,7 +229,7 @@ function heldkarp_bound(D::Matrix{Int}, S::Vector{Int};
 end
 
 """
-    lowerbound(dist_mtx::AbstractMatrix{Int}; max_iter::Int=100, ub::Union{Int,Nothing}=nothing)
+    lowerbound(dist_mtx::AbstractMatrix{Int}; max_iter::Int=1000, ub::Union{Int,Nothing}=nothing)
 
 Compute the Held-Karp lower bound for the TSP defined by `dist_mtx`.
 
@@ -219,7 +242,7 @@ It assumes the tour visits all cities and returns to the starting city.
 
 # Arguments
 - `dist_mtx::AbstractMatrix{Int}`: Symmetric distance matrix (n × n), must be of Int type
-- `max_iter::Int=100`: Maximum number of subgradient iterations
+- `max_iter::Int=1000`: Maximum number of subgradient iterations
 - `ub::Union{Int,Nothing}=nothing`: Upper bound for Polyak step size. If `nothing`, a 2-opt heuristic is used to compute one.
 
 # Returns
@@ -241,7 +264,7 @@ tour, cost = solve_tsp(M; algorithm="Concorde")
 lb = lowerbound(M; max_iter=200, ub=35)
 ```
 """
-function lowerbound(dist_mtx::Matrix{Int}; max_iter::Int=100, ub::Union{Int,Nothing}=nothing)
+function lowerbound(dist_mtx::Matrix{Int}; max_iter::Int=1000, ub::Union{Int,Nothing}=nothing)
     n, m = size(dist_mtx)
     @assert n == m "Distance matrix must be square"
     @assert issymmetric(dist_mtx) "Distance matrix must be symmetric"
