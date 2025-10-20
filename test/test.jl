@@ -2,9 +2,9 @@ using TSPSolvers, Test, LinearAlgebra
 
 function test()
     M = [
-            0  16   7   14
+        0  16   7   14
         16   0   3    5
-            7   3   0   16
+        7   3   0   16
         14   5  16    0 
     ]
 
