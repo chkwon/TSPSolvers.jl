@@ -22,4 +22,9 @@ tour, cost = solve_tsp(M; algorithm="Concorde")
 @assert lb <= cost
 
 
+for algo in TSPSolvers.supported_algorithms
+    solve_tsp(M; algorithm=algo, firstcity=1)
+end
+
+
 end

@@ -6,4 +6,5 @@ using Test
     include("test_shift_tour.jl")
     include("test_simple_TSP.jl")
     include("test_lowerbound.jl")
+    include("test_type_stability.jl")
 end
