@@ -61,7 +61,7 @@ By default, `nbIter` is set to `4 * n` for HGS.
 
 ## Held-Karp Lower Bound
 
-TSPSolvers.jl also exposes the Held-Karp dynamic-programming relaxation, which gives a provable lower bound on the optimal tour length:
+TSPSolvers.jl also provides the Held-Karp  lower bound:
 ```julia
 using TSPSolvers
 M = [
