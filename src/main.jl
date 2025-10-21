@@ -23,7 +23,7 @@ const supported_algorithms = [
 ]
 
 
-function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tour::Vector{Int}=Int[], kwargs...) 
+function solve_tsp(dist_mtx::Matrix{Int}; algorithm="LKH", firstcity=1, init_tour::Vector{Int}=Int[], kwargs...)::Tuple{Vector{Int}, Int}
     n = size(dist_mtx, 1)
 
     S = dist_mtx
@@ -101,21 +101,21 @@ end
 
 
 
-function solve_tsp(file::String; algorithm="LKH", firstcity=1, kwargs...) 
+function solve_tsp(file::String; algorithm="LKH", firstcity=1, kwargs...)::Tuple{Vector{Int}, Int}
 
     if algorithm == "Concorde"
         tour, cost = Concorde.solve_tsp(file; kwargs...)
         shift_tour!(tour, firstcity)
-        return tour, cost
+        return tour, round(Int, cost)
 
     elseif algorithm == "LKH"
         tour, cost =  LKH.solve_tsp(file; kwargs...)
         shift_tour!(tour, firstcity)
-        return tour, cost
+        return tour, round(Int, cost)
 
     else
         tsp = TSPLIB.readTSP(file)
-        M = Int.(tsp.weights)    
+        M = Int.(tsp.weights)
         return solve_tsp(M; algorithm=algorithm, firstcity=firstcity, kwargs...)
     end
 
